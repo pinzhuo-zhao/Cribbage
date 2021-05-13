@@ -19,9 +19,34 @@ public class Cribbage extends CardGame {
     private static LogFacade logFacade = LogFacade.getInstance();
     private static ScoringStrategyFactory scoringStrategyFactory = ScoringStrategyFactory.getInstance();
     private IScoringStrategy strategy;
+    private ArrayList<ICribbageObserver> observers = new ArrayList<>();
 
-    private void addScore(Card cardPlayed, int player){
-        int points = strategy.getScore(cardPlayed);
+    private void subscribe(ICribbageObserver observer){
+        observers.add(observer);
+    }
+    private void notifyObservers(String prefix, ICribbageAdapter adapter,IPlayer player){
+        for (ICribbageObserver observer: observers){
+            observer.onEvent(prefix, adapter,player);
+        }
+    }
+    private void notifyObservers(String prefix,IPlayer player, ICribbageAdapter adapter, int totalPoints){
+        for (ICribbageObserver observer: observers){
+            observer.onEvent(prefix, adapter,player,totalPoints);
+        }
+    }
+    private void notifyObservers(String prefix, ICribbageAdapter adapter){
+        for (ICribbageObserver observer: observers){
+            observer.onEvent(prefix, adapter);
+        }
+    }
+    private void notifyObservers(String prefix, ICribbageAdapter adapter, int player, int total){
+        for (ICribbageObserver observer: observers){
+            observer.onEvent(prefix, adapter,player,total);
+        }
+    }
+
+    private void addScore(Card cardPlayed, int player,int totalPoints, ICribbageAdapter adapter){
+        int points = strategy.getScore(new CardAdapter(cardPlayed), player, totalPoints, adapter);
         scores[player] += points;
     }
 
@@ -183,11 +208,10 @@ private void deal(Hand pack, Hand[] hands) {
 	dealingOut(pack, hands);
 	for (int i = 0; i < nPlayers; i++) {
 		hands[i].sort(Hand.SortType.POINTPRIORITY, true);
+		//notify all observers the dealing result
+		notifyObservers("deal",new HandAdapter(hands[i]),players[i]);
 	}
-	//adding the log info after deal
-    for (int i = 0; i < nPlayers; i++) {
-        logFacade.logDeal(canonical(hands[i]),players[i].id);
-    }
+
 	layouts[0].setStepDelay(0);
 }
 
@@ -212,12 +236,11 @@ private void discardToCrib() {
 		}
 
 		crib.sort(Hand.SortType.POINTPRIORITY, true);
+        disCarded[player.id].sort(Hand.SortType.POINTPRIORITY, true);
+        //notify the subscribed observers the discarded cards by players
+        notifyObservers("discard",new HandAdapter(disCarded[player.id]),player);
 	}
 
-    for (int i = 0; i < disCarded.length; i++){
-        disCarded[i].sort(Hand.SortType.POINTPRIORITY, true);
-        logFacade.logDiscarded(canonical(disCarded[i]),i);
-    }
 }
 
 private void starter(Hand pack) {
@@ -230,13 +253,13 @@ private void starter(Hand pack) {
 	dealt.setVerso(false);
 	transfer(dealt, starter);
 	//log the starter card by calling LogFacade class's function
-	logFacade.logStarter(canonical(dealt));
+
+	notifyObservers("starter",new CardAdapter(dealt));
 	//use the scoring strategy to calculate the starter points for the dealer
 	strategy = scoringStrategyFactory.getScoringStrategy("starter");
 	Hand starterCard = new Hand(deck);
 	starterCard.insert(dealt,true);
-	addScore(dealt,1);
-	logFacade.logScore(scores[1],1,Scoring.STARTER.points,Scoring.STARTER.type,canonical(starterCard));
+	addScore(dealt,1,scores[1],new CardAdapter(dealt));
 
 }
 
@@ -271,8 +294,10 @@ private void play() {
 	while (!(players[0].emptyHand() && players[1].emptyHand())) {
 		// System.out.println("segments.size() = " + segments.size());
 		Card nextCard = players[currentPlayer].lay(thirtyone-total(s.segment));
-		logFacade.logPlay(canonical(nextCard),currentPlayer,total(s.segment)+cardValue(nextCard));
 
+        if (nextCard != null) {
+            notifyObservers("play", new CardAdapter(nextCard), currentPlayer, total(s.segment) + cardValue(nextCard));
+        }
 		if (nextCard == null) {
 			if (s.go) {
 				// Another "go" after previous one with no intervening cards
@@ -287,6 +312,7 @@ private void play() {
 		} else {
 			s.lastPlayer = currentPlayer; // last Player to play a card in this segment
 			transfer(nextCard, s.segment);
+            System.out.println(canonical(s.segment));
 			if (total(s.segment) == thirtyone) {
 				// lastPlayer gets 2 points for a 31
 				s.newSegment = true;
@@ -318,6 +344,7 @@ void showHandsCrib() {
     setTitle("Cribbage (V" + version + ") Constructed for UofM SWEN30006 with JGameGrid (www.aplu.ch)");
     setStatusText("Initializing...");
     initScore();
+    this.subscribe(new LogObserver());
 
 	  Hand pack = deck.toHand(false);
 	  RowLayout layout = new RowLayout(starterLocation, 0);

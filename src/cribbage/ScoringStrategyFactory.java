@@ -24,7 +24,7 @@ public class ScoringStrategyFactory {
         if (stage.equals("starter")){
            strategy = new StarterScoringStrategy();
         }
-
+        strategy.subscribe(new LogObserver());
         return strategy;
 
     }

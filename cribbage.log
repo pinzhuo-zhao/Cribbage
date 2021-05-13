@@ -6,7 +6,6 @@ deal,P1,[AD,AH,TD,JS,QH,KC]
 discard,P0,[2C,QC]
 discard,P1,[JS,KC]
 starter,8H
-score,P1,0,2,starter,[8H]
 play,P0,2,2H
 play,P1,3,AD
 play,P0,13,QD

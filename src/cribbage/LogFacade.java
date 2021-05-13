@@ -1,5 +1,7 @@
 package cribbage;
 
+import ch.aplu.jcardgame.Hand;
+
 import java.io.*;
 
 /**
@@ -56,37 +58,9 @@ public class LogFacade {
         }
     }
 
-    public void logDeal(String dealCanonical, int id){
+    public void logDealAndDiscarded(String prefix, ICribbageAdapter adapter, IPlayer player){
         try {
-            writer.write("deal,P" + id + "," + dealCanonical);
-            writer.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                writer.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    public void logDiscarded(String discardCanonical, int player){
-        try {
-            writer.write("discard,P" + player + "," + discardCanonical);
-            writer.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                writer.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    public void logStarter(String starterCanonical){
-        try {
-            writer.write("starter," + starterCanonical);
+            writer.write(prefix + ",P" + player.id + "," + adapter.getCanonical());
             writer.newLine();
         } catch (IOException e) {
             e.printStackTrace();
@@ -99,9 +73,24 @@ public class LogFacade {
         }
     }
 
-    public void logScore(int totalPoint, int player, int scoredPoint, String scoringType, String canonical){
+    public void logStarter(String prefix, ICribbageAdapter adapter){
         try {
-            writer.write("score,P" + player +"," + totalPoint +","+scoredPoint +"," + scoringType +"," + canonical);
+            writer.write(prefix +"," + adapter.getCanonical());
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void logScore(String prefix, int totalPoints, int player, Scoring scoring, ICribbageAdapter adapter){
+        try {
+            writer.write(prefix +",P" + player +"," + totalPoints +","+scoring.points +"," + scoring.type +"," + adapter.getCanonical());
             writer.newLine();
         } catch (IOException e) {
             e.printStackTrace();
@@ -115,9 +104,9 @@ public class LogFacade {
     }
 
 
-    public void logScore( int totalPoint, int player, int scoredPoint, String scoringType){
+    public void logScore(String prefix, int totalPoints, int player, Scoring scoring){
         try {
-            writer.write("score,P" + player +"," + totalPoint +","+scoredPoint +"," + scoringType);
+            writer.write(prefix +",P" + player +"," + totalPoints +","+scoring.points +"," + scoring.type);
             writer.newLine();
         } catch (IOException e) {
             e.printStackTrace();
@@ -130,9 +119,9 @@ public class LogFacade {
         }
     }
 
-    public void logPlay(String canonical, int player, int total){
+    public void logPlay(String prefix, ICribbageAdapter adapter, int player, int total){
         try {
-            writer.write("play,P" + player +"," + total +","+ canonical);
+            writer.write(prefix +",P" + player +"," + total +","+ adapter.getCanonical());
             writer.newLine();
         } catch (IOException e) {
             e.printStackTrace();
