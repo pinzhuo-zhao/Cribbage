@@ -24,4 +24,9 @@ public class HandAdapter implements ICribbageAdapter {
     public int getValue() {
         return Cribbage.cribbage.total(hand);
     }
+
+    public Hand getHand() {
+        return hand;
+    }
+
 }

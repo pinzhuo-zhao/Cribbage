@@ -134,6 +134,23 @@ public class LogFacade {
         }
     }
 
+    public void logShow(String prefix, IPlayer player, ICribbageAdapter starter, ICribbageAdapter hands){
+        try {
+            writer.write(prefix +",P" + player.id +"," + starter.getCanonical() + "+" + hands.getCanonical());
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+
 
 
 //    String canonical(Cribbage.Suit s) { return s.toString().substring(0, 1); }

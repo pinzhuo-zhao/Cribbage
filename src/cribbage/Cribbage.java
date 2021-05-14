@@ -7,8 +7,7 @@ import ch.aplu.jgamegrid.*;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,6 +19,7 @@ public class Cribbage extends CardGame {
     private static ScoringStrategyFactory scoringStrategyFactory = ScoringStrategyFactory.getInstance();
     private IScoringStrategy strategy;
     private ArrayList<ICribbageObserver> observers = new ArrayList<>();
+    private static volatile Hand[]handsForShow = new Hand[2];
 
     private void subscribe(ICribbageObserver observer){
         observers.add(observer);
@@ -44,9 +44,14 @@ public class Cribbage extends CardGame {
             observer.onEvent(prefix, adapter,player,total);
         }
     }
+    private void notifyObservers(String prefix, IPlayer player, ICribbageAdapter starter, ICribbageAdapter hands){
+        for (ICribbageObserver observer: observers){
+            observer.onEvent(prefix,player,starter,hands);
+        }
+    }
 
-    private void addScore(Card cardPlayed, int player,int totalPoints, ICribbageAdapter adapter){
-        int points = strategy.getScore(new CardAdapter(cardPlayed), player, totalPoints, adapter);
+    private void addScore(Card cardPlayed, int player,int totalPoints, ICribbageAdapter adapter, ArrayList<Card> cards){
+        int points = strategy.getScore(new CardAdapter(cardPlayed), player, totalPoints, adapter, cards);
         scores[player] += points;
     }
 
@@ -65,7 +70,11 @@ public class Cribbage extends CardGame {
 			this.order = order;
 			this.value = value;
 		}
-	}
+
+        public int getOrder() {
+            return order;
+        }
+    }
 
 	static int cardValue(Card c) { return ((Cribbage.Rank) c.getRank()).value; }
 
@@ -209,7 +218,12 @@ private void deal(Hand pack, Hand[] hands) {
 	for (int i = 0; i < nPlayers; i++) {
 		hands[i].sort(Hand.SortType.POINTPRIORITY, true);
 		//notify all observers the dealing result
-		notifyObservers("deal",new HandAdapter(hands[i]),players[i]);
+        Hand handForShow = new Hand(deck);
+        for (Card C: hands[i].getCardList()) handForShow.insert(C.getSuit(), C.getRank(), false);
+        handsForShow[i] = handForShow;
+
+
+        notifyObservers("deal",new HandAdapter(hands[i]),players[i]);
 	}
 
 	layouts[0].setStepDelay(0);
@@ -232,12 +246,15 @@ private void discardToCrib() {
 		    //move each players' discarded cards to crib
             Card discard = player.discard();
             transfer(discard, crib);
-			disCarded[player.id].insert(discard,true);
+            handsForShow[player.id].remove(discard,false);
+
+			disCarded[player.id].insert(discard,false);
 		}
 
 		crib.sort(Hand.SortType.POINTPRIORITY, true);
-        disCarded[player.id].sort(Hand.SortType.POINTPRIORITY, true);
+        disCarded[player.id].sort(Hand.SortType.POINTPRIORITY, false);
         //notify the subscribed observers the discarded cards by players
+
         notifyObservers("discard",new HandAdapter(disCarded[player.id]),player);
 	}
 
@@ -258,8 +275,8 @@ private void starter(Hand pack) {
 	//use the scoring strategy to calculate the starter points for the dealer
 	strategy = scoringStrategyFactory.getScoringStrategy("starter");
 	Hand starterCard = new Hand(deck);
-	starterCard.insert(dealt,true);
-	addScore(dealt,1,scores[1],new CardAdapter(dealt));
+	starterCard.insert(dealt,false);
+	addScore(dealt,1,scores[1],new CardAdapter(dealt),new ArrayList<Card>());
 
 }
 
@@ -291,6 +308,9 @@ private void play() {
 	int currentPlayer = 0; // Player 1 is dealer
 	Segment s = new Segment();
 	s.reset(segments);
+    strategy = scoringStrategyFactory.getScoringStrategy("play");
+    ArrayList<Card> cards = new ArrayList<>();
+
 	while (!(players[0].emptyHand() && players[1].emptyHand())) {
 		// System.out.println("segments.size() = " + segments.size());
 		Card nextCard = players[currentPlayer].lay(thirtyone-total(s.segment));
@@ -302,18 +322,23 @@ private void play() {
 			if (s.go) {
 				// Another "go" after previous one with no intervening cards
 				// lastPlayer gets 1 point for a "go"
+                addScore(nextCard,s.lastPlayer,scores[s.lastPlayer],new HandAdapter(s.segment),cards);
 				s.newSegment = true;
 			} else {
 				// currentPlayer says "go"
 				s.go = true;
+
 			}
 			//switch player
 			currentPlayer = (currentPlayer+1) % 2;
 		} else {
 			s.lastPlayer = currentPlayer; // last Player to play a card in this segment
 			transfer(nextCard, s.segment);
-            System.out.println(canonical(s.segment));
-			if (total(s.segment) == thirtyone) {
+			cards.add(nextCard);
+
+			addScore(nextCard,currentPlayer,scores[currentPlayer],new HandAdapter(s.segment),cards);
+
+            if (total(s.segment) == thirtyone) {
 				// lastPlayer gets 2 points for a 31
 				s.newSegment = true;
 				currentPlayer = (currentPlayer+1) % 2;
@@ -324,17 +349,25 @@ private void play() {
 				}
 			}
 		}
+
 		if (s.newSegment) {
 			segments.add(s.segment);
 			s.reset(segments);
 		}
+
 	}
+    addScore(null,s.lastPlayer,scores[s.lastPlayer],new HandAdapter(s.segment),cards);
+
 }
 
 void showHandsCrib() {
 	// score player 0 (non dealer)
 	// score player 1 (dealer)
 	// score crib (for dealer)
+
+    System.out.println(crib);
+    notifyObservers("show",players[0],new CardAdapter(starter.getCardList().get(0)), new HandAdapter(handsForShow[0]));
+
 }
 
   public Cribbage()

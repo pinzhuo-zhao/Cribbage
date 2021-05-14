@@ -2,6 +2,8 @@ package cribbage;
 
 import ch.aplu.jcardgame.Card;
 
+import java.util.ArrayList;
+
 /**
  * @program: Cribbage
  * @description:
@@ -10,8 +12,12 @@ import ch.aplu.jcardgame.Card;
  **/
 public class StarterScoringStrategy extends IScoringStrategy {
 
+    public StarterScoringStrategy() {
+        super();
+    }
+
     @Override
-    public int getScore(ICribbageAdapter cardPlayed, int player, int totalPoints, ICribbageAdapter adapter) {
+    public int getScore(ICribbageAdapter cardPlayed, int player, int totalPoints, ICribbageAdapter adapter,ArrayList<Card> cards) {
         int score = 0;
         CardAdapter cardAdapter = null;
         if (cardPlayed instanceof CardAdapter){

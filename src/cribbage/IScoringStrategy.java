@@ -11,7 +11,12 @@ import java.util.ArrayList;
  * @create: 2021-05-12 14:55
  **/
 public abstract class IScoringStrategy {
-    protected ArrayList<ICribbageObserver> observers = new ArrayList<>();
+    protected volatile ArrayList<ICribbageObserver> observers = new ArrayList<>();
+
+    public IScoringStrategy() {
+        observers.add(new LogObserver());
+    }
+
     protected void subscribe(ICribbageObserver observer){
         observers.add(observer);
     }
@@ -35,5 +40,10 @@ public abstract class IScoringStrategy {
             observer.onEvent(prefix,totalPoints,player,scoring,adapter);
         }
     }
-    abstract int getScore(ICribbageAdapter adapter1, int player, int totalPoints, ICribbageAdapter adapter2);
+    protected  void notifyObservers(String prefix, int totalPoints, int player, Scoring scoring){
+        for (ICribbageObserver observer: observers){
+            observer.onEvent(prefix,totalPoints,player,scoring);
+        }
+    }
+    abstract int getScore(ICribbageAdapter adapter1, int player, int totalPoints, ICribbageAdapter adapter2, ArrayList<Card> cards);
 }

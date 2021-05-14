@@ -34,9 +34,18 @@ public class LogObserver implements ICribbageObserver {
     public void onEvent(String prefix, int totalPoints, int player, Scoring scoring, ICribbageAdapter adapter) {
         facade.logScore(prefix,totalPoints,player,scoring,adapter);
     }
+    @Override
+    public void onEvent(String prefix, int totalPoints, int player, Scoring scoring) {
+        facade.logScore(prefix,totalPoints,player,scoring);
+    }
 
     @Override
     public void onEvent(String prefix, ICribbageAdapter adapter, int player, int total) {
         facade.logPlay(prefix, adapter,player,total);
+    }
+
+    @Override
+    public void onEvent(String prefix, IPlayer player, ICribbageAdapter starter, ICribbageAdapter hands) {
+        facade.logShow(prefix,player,starter,hands);
     }
 }

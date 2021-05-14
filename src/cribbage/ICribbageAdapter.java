@@ -10,4 +10,5 @@ public interface ICribbageAdapter {
     String getCanonical();
     int getValue();
 
+
 }

@@ -24,8 +24,16 @@ public class ScoringStrategyFactory {
         if (stage.equals("starter")){
            strategy = new StarterScoringStrategy();
         }
-        strategy.subscribe(new LogObserver());
+        else if (stage.equals("play")){
+            PlayCompositeScoringStrategy playCompositeScoringStrategy = new PlayCompositeScoringStrategy();
+            playCompositeScoringStrategy.addStrategy(new TotalAndLastCardScoringStrategy());
+            playCompositeScoringStrategy.addStrategy(new RunScoringStrategy());
+            playCompositeScoringStrategy.addStrategy(new PairScoringStrategy());
+            strategy = playCompositeScoringStrategy;
+
+        }
         return strategy;
 
     }
+
 }

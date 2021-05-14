@@ -10,7 +10,11 @@ play,P0,2,2H
 play,P1,3,AD
 play,P0,13,QD
 play,P1,23,QH
+score,P1,2,2,pair
 play,P0,30,7C
 play,P1,31,AH
+score,P1,4,2,thirtyone
 play,P0,10,KH
 play,P1,20,TD
+score,P1,5,1,go
+show,P0,8H+[2H,7C,QD,KH]
