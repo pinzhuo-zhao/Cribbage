@@ -25,12 +25,21 @@ public class ScoringStrategyFactory {
            strategy = new StarterScoringStrategy();
         }
         else if (stage.equals("play")){
-            PlayCompositeScoringStrategy playCompositeScoringStrategy = new PlayCompositeScoringStrategy();
+            CompositeScoringStrategy playCompositeScoringStrategy = new CompositeScoringStrategy();
             playCompositeScoringStrategy.addStrategy(new TotalAndLastCardScoringStrategy());
             playCompositeScoringStrategy.addStrategy(new RunScoringStrategy());
             playCompositeScoringStrategy.addStrategy(new PairScoringStrategy());
             strategy = playCompositeScoringStrategy;
 
+        }
+        else if (stage.equals("show")){
+            CompositeScoringStrategy showCompositeScoringStrategy = new CompositeScoringStrategy();
+            showCompositeScoringStrategy.addStrategy(new ShowFifteenScoringStrategy());
+            showCompositeScoringStrategy.addStrategy(new ShowPairScoringStrategy());
+            showCompositeScoringStrategy.addStrategy(new RunScoringStrategy());
+            showCompositeScoringStrategy.addStrategy(new ShowFlushScoringStrategy());
+            showCompositeScoringStrategy.addStrategy(new ShowJackScoringStrategy());
+            strategy = showCompositeScoringStrategy;
         }
         return strategy;
 

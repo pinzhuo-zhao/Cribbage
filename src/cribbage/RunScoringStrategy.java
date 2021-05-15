@@ -18,16 +18,18 @@ public class RunScoringStrategy extends IScoringStrategy {
     }
 
     @Override
-    int getScore(ICribbageAdapter playedCard, int player, int totalPoints, ICribbageAdapter playedHand,ArrayList<Card> cards) {
+    int getScore(ICribbageAdapter playedCard, int player, int totalPoints, ICribbageAdapter playedHand) {
         int score = 0;
         Card cardPlayed = ((CardAdapter)playedCard).getCard();
         if (cardPlayed == null){
             return 0;
         }
         if (playedHand instanceof HandAdapter){
-            HandAdapter hand = (HandAdapter) playedHand;
-
-            ArrayList<Card> cardList = hand.getHand().getCardList();
+            HandAdapter handAdapter = (HandAdapter) playedHand;
+            Hand hand = handAdapter.getHand();
+            Hand copy = new Hand(new Deck(Cribbage.Suit.values(), Cribbage.Rank.values(), "cover", Cribbage.cribbage.new MyCardValues()));
+            for (Card C: hand.getCardList()) copy.insert(C.getSuit(), C.getRank(), false);
+            ArrayList<Card> cardList = copy.getCardList();
             cardList.sort((o1, o2) -> ((Cribbage.Rank) o1.getRank()).order - ((Cribbage.Rank)o2.getRank()).order);
             ArrayList<Card> runList = new ArrayList<>();
             int run = 1;
@@ -58,11 +60,10 @@ public class RunScoringStrategy extends IScoringStrategy {
 
             Hand runHand = new Hand(new Deck(Cribbage.Suit.values(), Cribbage.Rank.values(), "cover", Cribbage.cribbage.new MyCardValues()));
             for (Card card:runList){
-                runHand.insert(card,false);
+                runHand.insert(card.getSuit(),card.getRank(),false);
             }
 
             if (run == 3){
-                System.out.println(run);
                 score += Scoring.RUN3.points;
                 notifyObservers("score",totalPoints+Scoring.RUN3.points,player,Scoring.RUN3,new HandAdapter(runHand));
 

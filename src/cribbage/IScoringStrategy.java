@@ -45,5 +45,5 @@ public abstract class IScoringStrategy {
             observer.onEvent(prefix,totalPoints,player,scoring);
         }
     }
-    abstract int getScore(ICribbageAdapter adapter1, int player, int totalPoints, ICribbageAdapter adapter2, ArrayList<Card> cards);
+    abstract int getScore(ICribbageAdapter adapter1, int player, int totalPoints, ICribbageAdapter adapter2);
 }

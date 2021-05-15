@@ -13,9 +13,10 @@ import java.util.ArrayList;
  **/
 public class PairScoringStrategy extends IScoringStrategy{
     @Override
-    int getScore(ICribbageAdapter cardPlayed, int player, int totalPoints, ICribbageAdapter playedHand, ArrayList<Card> cards) {
+    int getScore(ICribbageAdapter cardPlayed, int player, int totalPoints, ICribbageAdapter playedHand) {
         int score = 0;
         Card card = ((CardAdapter)cardPlayed).getCard();
+        ArrayList<Card> cards = ((HandAdapter)playedHand).getHand().getCardList();
         if (card == null){
             return 0;
         }

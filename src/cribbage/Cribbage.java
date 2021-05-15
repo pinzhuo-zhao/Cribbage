@@ -50,8 +50,8 @@ public class Cribbage extends CardGame {
         }
     }
 
-    private void addScore(Card cardPlayed, int player,int totalPoints, ICribbageAdapter adapter, ArrayList<Card> cards){
-        int points = strategy.getScore(new CardAdapter(cardPlayed), player, totalPoints, adapter, cards);
+    private void calculateScore(Card cardPlayed, int player, int totalPoints, ICribbageAdapter adapter){
+        int points = strategy.getScore(new CardAdapter(cardPlayed), player, totalPoints, adapter);
         scores[player] += points;
     }
 
@@ -177,7 +177,7 @@ public class Cribbage extends CardGame {
   public static void setStatus(String string) { cribbage.setStatusText(string); }
 
 static private final IPlayer[] players = new IPlayer[nPlayers];
-private final int[] scores = new int[nPlayers];
+public final int[] scores = new int[nPlayers];
 
 final Font normalFont = new Font("Serif", Font.BOLD, 24);
 final Font bigFont = new Font("Serif", Font.BOLD, 36);
@@ -252,7 +252,7 @@ private void discardToCrib() {
 		}
 
 		crib.sort(Hand.SortType.POINTPRIORITY, true);
-        disCarded[player.id].sort(Hand.SortType.POINTPRIORITY, false);
+
         //notify the subscribed observers the discarded cards by players
 
         notifyObservers("discard",new HandAdapter(disCarded[player.id]),player);
@@ -276,7 +276,7 @@ private void starter(Hand pack) {
 	strategy = scoringStrategyFactory.getScoringStrategy("starter");
 	Hand starterCard = new Hand(deck);
 	starterCard.insert(dealt,false);
-	addScore(dealt,1,scores[1],new CardAdapter(dealt),new ArrayList<Card>());
+	calculateScore(dealt,1,scores[1],new CardAdapter(dealt));
 
 }
 
@@ -322,7 +322,7 @@ private void play() {
 			if (s.go) {
 				// Another "go" after previous one with no intervening cards
 				// lastPlayer gets 1 point for a "go"
-                addScore(nextCard,s.lastPlayer,scores[s.lastPlayer],new HandAdapter(s.segment),cards);
+                calculateScore(nextCard,s.lastPlayer,scores[s.lastPlayer],new HandAdapter(s.segment));
 				s.newSegment = true;
 			} else {
 				// currentPlayer says "go"
@@ -336,7 +336,7 @@ private void play() {
 			transfer(nextCard, s.segment);
 			cards.add(nextCard);
 
-			addScore(nextCard,currentPlayer,scores[currentPlayer],new HandAdapter(s.segment),cards);
+			calculateScore(nextCard,currentPlayer,scores[currentPlayer],new HandAdapter(s.segment));
 
             if (total(s.segment) == thirtyone) {
 				// lastPlayer gets 2 points for a 31
@@ -356,18 +356,33 @@ private void play() {
 		}
 
 	}
-    addScore(null,s.lastPlayer,scores[s.lastPlayer],new HandAdapter(s.segment),cards);
+    calculateScore(null,s.lastPlayer,scores[s.lastPlayer],new HandAdapter(s.segment));
 
 }
 
 void showHandsCrib() {
-	// score player 0 (non dealer)
-	// score player 1 (dealer)
-	// score crib (for dealer)
 
-    System.out.println(crib);
-    notifyObservers("show",players[0],new CardAdapter(starter.getCardList().get(0)), new HandAdapter(handsForShow[0]));
 
+
+
+//    System.out.println(crib);
+    // score player 0 (non dealer)
+    Card starterCard = starter.getCardList().get(0);
+    notifyObservers("show",players[0],new CardAdapter(starterCard), new HandAdapter(handsForShow[0]));
+    handsForShow[0].insert(starterCard.getSuit(), starterCard.getRank(), false);
+    strategy = scoringStrategyFactory.getScoringStrategy("show");
+
+    calculateScore(starterCard,0,scores[0],new HandAdapter(handsForShow[0]));
+
+    //score player 1 (dealer)
+    notifyObservers("show",players[1],new CardAdapter(starterCard), new HandAdapter(handsForShow[1]));
+    handsForShow[1].insert(starterCard.getSuit(), starterCard.getRank(), false);
+    calculateScore(starterCard,1,scores[1],new HandAdapter(handsForShow[1]));
+
+    // score crib (for dealer)
+    notifyObservers("show",players[1],new CardAdapter(starterCard), new HandAdapter(crib));
+    crib.insert(starterCard.getSuit(), starterCard.getRank(), false);
+    calculateScore(starterCard,1,scores[1],new HandAdapter(crib));
 }
 
   public Cribbage()

@@ -10,10 +10,10 @@ import java.util.ArrayList;
  * @author: Pinzhuo Zhao, StudentID:1043915
  * @create: 2021-05-14 17:02
  **/
-public class PlayCompositeScoringStrategy extends IScoringStrategy{
+public class CompositeScoringStrategy extends IScoringStrategy{
     ArrayList<IScoringStrategy> strategies = new ArrayList<>();
 
-    public PlayCompositeScoringStrategy() {
+    public CompositeScoringStrategy() {
         super();
     }
 
@@ -22,10 +22,12 @@ public class PlayCompositeScoringStrategy extends IScoringStrategy{
     }
 
     @Override
-    int getScore(ICribbageAdapter adapter1, int player, int totalPoints, ICribbageAdapter adapter2,ArrayList<Card> cards) {
+    int getScore(ICribbageAdapter adapter1, int player, int totalPoints, ICribbageAdapter adapter2) {
         int total = 0;
         for (IScoringStrategy strategy : strategies){
-            total += strategy.getScore(adapter1, player, totalPoints, adapter2,cards);
+            int score = strategy.getScore(adapter1, player, totalPoints, adapter2);
+            total += score;
+            totalPoints += score;
         }
         return total;
     }

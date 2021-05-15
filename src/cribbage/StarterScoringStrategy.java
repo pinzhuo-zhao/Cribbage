@@ -17,7 +17,7 @@ public class StarterScoringStrategy extends IScoringStrategy {
     }
 
     @Override
-    public int getScore(ICribbageAdapter cardPlayed, int player, int totalPoints, ICribbageAdapter adapter,ArrayList<Card> cards) {
+    public int getScore(ICribbageAdapter cardPlayed, int player, int totalPoints, ICribbageAdapter adapter) {
         int score = 0;
         CardAdapter cardAdapter = null;
         if (cardPlayed instanceof CardAdapter){

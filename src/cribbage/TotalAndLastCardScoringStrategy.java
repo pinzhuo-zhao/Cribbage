@@ -12,7 +12,7 @@ import java.util.ArrayList;
  **/
 public class TotalAndLastCardScoringStrategy extends IScoringStrategy {
     @Override
-    int getScore(ICribbageAdapter cardPlayed, int player, int totalPoints, ICribbageAdapter playedHand, ArrayList<Card> cards) {
+    int getScore(ICribbageAdapter cardPlayed, int player, int totalPoints, ICribbageAdapter playedHand) {
         int score =0;
         if (playedHand.getValue() == 15){
             score +=Scoring.FIFTEEN.points;
